@@ -618,19 +618,19 @@ where
 mod tests {
     use std::str::FromStr;
 
-    use ring::rand::SecureRandom;
     use serde_test::{assert_tokens, Token};
 
     use super::*;
-    use crate::jwa::{self, random_aes_gcm_nonce, rng};
+    use crate::jwa::{self};
     use crate::jws;
     use crate::test::assert_serde_json;
     use crate::JWE;
+    use crate::crypto_impl;
 
     fn cek_oct_key(len: usize) -> jwk::JWK<Empty> {
         // Construct the encryption key
         let mut key: Vec<u8> = vec![0; len];
-        not_err!(rng().fill(&mut key));
+        not_err!(crypto_impl::rng_fill(&mut key));
         jwk::JWK {
             common: Default::default(),
             additional: Default::default(),
@@ -804,7 +804,7 @@ mod tests {
             payload.as_bytes().to_vec(),
         );
         let options = EncryptionOptions::AES_GCM {
-            nonce: random_aes_gcm_nonce().unwrap(),
+            nonce: crate::crypto_impl::random_aes_gcm_nonce().unwrap(),
         };
 
         // Encrypt
@@ -880,7 +880,7 @@ mod tests {
             jws.clone(),
         );
         let options = EncryptionOptions::AES_GCM {
-            nonce: random_aes_gcm_nonce().unwrap(),
+            nonce: crate::crypto_impl::random_aes_gcm_nonce().unwrap(),
         };
 
         // Encrypt
@@ -955,7 +955,7 @@ mod tests {
             jws.clone(),
         );
         let options = EncryptionOptions::AES_GCM {
-            nonce: random_aes_gcm_nonce().unwrap(),
+            nonce: crate::crypto_impl::random_aes_gcm_nonce().unwrap(),
         };
 
         // Encrypt
@@ -1007,7 +1007,7 @@ mod tests {
             payload.as_bytes().to_vec(),
         );
         let options = EncryptionOptions::AES_GCM {
-            nonce: random_aes_gcm_nonce().unwrap(),
+            nonce: crate::crypto_impl::random_aes_gcm_nonce().unwrap(),
         };
 
         // Encrypt
@@ -1040,7 +1040,7 @@ mod tests {
         );
 
         let options = EncryptionOptions::AES_GCM {
-            nonce: random_aes_gcm_nonce().unwrap(),
+            nonce: crate::crypto_impl::random_aes_gcm_nonce().unwrap(),
         };
         // Encrypt
         let encrypted_jwe = not_err!(jwe.encrypt(&key, &options));
@@ -1086,7 +1086,7 @@ mod tests {
         );
 
         let options = EncryptionOptions::AES_GCM {
-            nonce: random_aes_gcm_nonce().unwrap(),
+            nonce: crate::crypto_impl::random_aes_gcm_nonce().unwrap(),
         };
         // Encrypt
         let encrypted_jwe = not_err!(jwe.encrypt(&key, &options));
@@ -1125,7 +1125,7 @@ mod tests {
         );
 
         let options = EncryptionOptions::AES_GCM {
-            nonce: random_aes_gcm_nonce().unwrap(),
+            nonce: crate::crypto_impl::random_aes_gcm_nonce().unwrap(),
         };
         // Encrypt
         let encrypted_jwe = not_err!(jwe.encrypt(&key, &options));
@@ -1164,7 +1164,7 @@ mod tests {
         );
 
         let options = EncryptionOptions::AES_GCM {
-            nonce: random_aes_gcm_nonce().unwrap(),
+            nonce: crate::crypto_impl::random_aes_gcm_nonce().unwrap(),
         };
         // Encrypt
         let encrypted_jwe = not_err!(jwe.encrypt(&key, &options));
@@ -1201,7 +1201,7 @@ mod tests {
             payload.as_bytes().to_vec(),
         );
         let options = EncryptionOptions::AES_GCM {
-            nonce: random_aes_gcm_nonce().unwrap(),
+            nonce: crate::crypto_impl::random_aes_gcm_nonce().unwrap(),
         };
 
         // Encrypt
@@ -1242,7 +1242,7 @@ mod tests {
         );
 
         let options = EncryptionOptions::AES_GCM {
-            nonce: random_aes_gcm_nonce().unwrap(),
+            nonce: crate::crypto_impl::random_aes_gcm_nonce().unwrap(),
         };
         // Encrypt
         let encrypted_jwe = not_err!(jwe.encrypt(&key, &options));
@@ -1279,7 +1279,7 @@ mod tests {
             payload.as_bytes().to_vec(),
         );
         let options = EncryptionOptions::AES_GCM {
-            nonce: random_aes_gcm_nonce().unwrap(),
+            nonce: crate::crypto_impl::random_aes_gcm_nonce().unwrap(),
         };
 
         // Encrypt
@@ -1319,7 +1319,7 @@ mod tests {
             payload.as_bytes().to_vec(),
         );
         let options = EncryptionOptions::AES_GCM {
-            nonce: random_aes_gcm_nonce().unwrap(),
+            nonce: crate::crypto_impl::random_aes_gcm_nonce().unwrap(),
         };
 
         // Encrypt

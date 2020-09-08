@@ -5,13 +5,13 @@ edition = "2018"
 authors = ["Yong Wen Chua <me@yongwen.xyz>", "Vincent Prouillet <vincent@wearewizards.io>"]
 license = "MIT"
 readme = "README.md"
-description = """A library to work with Javascript Object Signing and Encryption(JOSE),
+description = """A pure rust library to work with Javascript Object Signing and Encryption(JOSE),
 including JSON Web Tokens (JWT), JSON Web Signature (JWS) and JSON Web Encryption (JWE)."""
-homepage = "https://github.com/lawliet89/biscuit"
-repository = "https://github.com/lawliet89/biscuit"
-documentation = "https://docs.rs/biscuit/"
+homepage = "https://github.com/setttle/biscuit-rsa"
+repository = "https://github.com/setttle/biscuit-rsa"
+documentation = "https://docs.rs/biscuit-rsa/"
 keywords = ["jwt", "json", "jose", "jwe", "jws"]
-categories = ["authentication", "web-programming"]
+categories = ["authentication", "web-programming", "pure-rust"]
 
 [badges]
 travis-ci = { repository = "lawliet89/biscuit" }
@@ -28,7 +28,8 @@ chrono = "0.4.13"
 data-encoding = "2.3.0"
 once_cell = "1.4.0"
 num = "0.3"
-ring = "~0.16.15"
+ring = { version = "~0.16.15", optional = true }
+rsa = { version = "0.3.0", optional = true }
 serde = { version = "1.0.114", features=["derive"] }
 serde_json = { version = "1.0", features = ["preserve_order"] }
 
@@ -38,3 +39,7 @@ serde_test = "1.0"
 [features]
 # Treat warnings as a build error.
 strict = []
+default = ["ring_impl"]
+
+ring_impl = ["ring"]
+rust_crypto_impl = ["rsa"]

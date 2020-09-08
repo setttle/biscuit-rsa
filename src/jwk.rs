@@ -296,13 +296,13 @@ impl AlgorithmParameters {
     ///   }"#,
     /// ).unwrap();
     /// assert_eq!(
-    ///   jwk.algorithm.thumbprint(&biscuit::digest::SHA256).unwrap(),
+    ///   jwk.algorithm.thumbprint(&biscuit::digest::DigestAlgorithm::SHA256).unwrap(),
     ///   "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs"
     /// );
     /// ```
     pub fn thumbprint(
         &self,
-        algorithm: &'static crate::digest::Algorithm,
+        algorithm: &crate::digest::DigestAlgorithm,
     ) -> Result<String, serde_json::error::Error> {
         use serde::ser::SerializeMap;
 
@@ -336,7 +336,7 @@ impl AlgorithmParameters {
         }
         map.end()?;
         let json_u8 = serializer.into_inner();
-        Ok(BASE64URL_NOPAD.encode(ring::digest::digest(algorithm.0, &json_u8).as_ref()))
+        Ok(BASE64URL_NOPAD.encode(crate::crypto_impl::digest(&algorithm, &json_u8).as_ref()))
     }
 }
 
@@ -1404,7 +1404,7 @@ mod tests {
         )
         .unwrap();
         assert_eq!(
-            jwk.algorithm.thumbprint(&crate::digest::SHA256).unwrap(),
+            jwk.algorithm.thumbprint(&crate::digest::DigestAlgorithm::SHA256).unwrap(),
             "5RQpPyszBq9VihghaQY1Ptj4OdOpQH7AIOOnngMEKrA"
         );
     }
@@ -1423,7 +1423,7 @@ mod tests {
         )
         .unwrap();
         assert_eq!(
-            jwk.algorithm.thumbprint(&crate::digest::SHA256).unwrap(),
+            jwk.algorithm.thumbprint(&crate::digest::DigestAlgorithm::SHA256).unwrap(),
             "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs"
         );
     }
@@ -1443,7 +1443,7 @@ mod tests {
         )
         .unwrap();
         assert_eq!(
-            jwk.algorithm.thumbprint(&crate::digest::SHA256).unwrap(),
+            jwk.algorithm.thumbprint(&crate::digest::DigestAlgorithm::SHA256).unwrap(),
             "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs"
         );
     }
@@ -1461,7 +1461,7 @@ mod tests {
         )
         .unwrap();
         assert_eq!(
-            jwk.algorithm.thumbprint(&crate::digest::SHA256).unwrap(),
+            jwk.algorithm.thumbprint(&crate::digest::DigestAlgorithm::SHA256).unwrap(),
             "svOLuZiKpi3RFmSHAcCJqsQqjBmWR4egaIsgk-2uBak"
         );
     }
@@ -1477,7 +1477,7 @@ mod tests {
         )
         .unwrap();
         assert_eq!(
-            jwk.algorithm.thumbprint(&crate::digest::SHA256).unwrap(),
+            jwk.algorithm.thumbprint(&crate::digest::DigestAlgorithm::SHA256).unwrap(),
             "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
         );
     }

@@ -22,7 +22,9 @@ pub enum Error {
     Utf8(str::Utf8Error),
     /// Errors related to IO
     IOError(io::Error),
+
     /// Key was rejected by Ring
+    #[cfg(feature = "ring")]
     KeyRejected(ring::error::KeyRejected),
 
     /// Wrong key type was provided for the cryptographic operation
@@ -114,8 +116,10 @@ impl_from_error!(str::Utf8Error, Error::Utf8);
 impl_from_error!(ValidationError, Error::ValidationError);
 impl_from_error!(DecodeError, Error::DecodeError);
 impl_from_error!(io::Error, Error::IOError);
+#[cfg(feature = "ring")]
 impl_from_error!(ring::error::KeyRejected, Error::KeyRejected);
 
+#[cfg(feature = "ring")]
 impl From<ring::error::Unspecified> for Error {
     fn from(_: ring::error::Unspecified) -> Self {
         Error::UnspecifiedCryptographicError
@@ -140,6 +144,7 @@ impl fmt::Display for Error {
             DecodeError(ref err) => fmt::Display::fmt(err, f),
             ValidationError(ref err) => fmt::Display::fmt(err, f),
             IOError(ref err) => fmt::Display::fmt(err, f),
+            #[cfg(feature = "ring")]
             KeyRejected(ref err) => fmt::Display::fmt(err, f),
             WrongKeyType {
                 ref actual,

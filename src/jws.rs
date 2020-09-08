@@ -6,7 +6,6 @@ use std::str;
 use std::sync::Arc;
 
 use num::BigUint;
-use ring::signature;
 use serde::de::DeserializeOwned;
 use serde::{self, Deserialize, Serialize};
 
@@ -394,7 +393,7 @@ pub enum Secret {
     ///
     /// let secret = Secret::rsa_keypair_from_file("test/fixtures/rsa_private_key.der");
     /// ```
-    RsaKeyPair(Arc<signature::RsaKeyPair>),
+    RsaKeyPair(Arc<crate::crypto_impl::RsaKeyPair>),
     /// An ECDSA Key pair constructed from a PKCS8 DER encoded private key
     ///
     /// To generate a private key, use
@@ -410,7 +409,7 @@ pub enum Secret {
     ///
     /// let secret = Secret::ecdsa_keypair_from_file(biscuit::jwa::SignatureAlgorithm::ES256, "test/fixtures/ecdsa_private_key.p8");
     /// ```
-    EcdsaKeyPair(Arc<signature::EcdsaKeyPair>),
+    EcdsaKeyPair(Arc<crate::crypto_impl::EcdsaKeyPair>),
     /// Bytes of a DER encoded RSA Public Key
     ///
     /// To generate the public key from your DER-encoded private key
@@ -452,18 +451,18 @@ pub enum Secret {
     },
 }
 
+pub (crate) fn read_bytes(path: &str) -> Result<Vec<u8>, Error> {
+    use std::fs::File;
+    use std::io::prelude::*;
+
+    let mut file = File::open(path)?;
+    let metadata = file.metadata()?;
+    let mut bytes: Vec<u8> = Vec::with_capacity(metadata.len() as usize);
+    let _ = file.read_to_end(&mut bytes)?;
+    Ok(bytes)
+}
+
 impl Secret {
-    fn read_bytes(path: &str) -> Result<Vec<u8>, Error> {
-        use std::fs::File;
-        use std::io::prelude::*;
-
-        let mut file = File::open(path)?;
-        let metadata = file.metadata()?;
-        let mut bytes: Vec<u8> = Vec::with_capacity(metadata.len() as usize);
-        let _ = file.read_to_end(&mut bytes)?;
-        Ok(bytes)
-    }
-
     /// Convenience function to create a secret bytes array from a string
     /// See example in the [`Secret::Bytes`] variant documentation for usage.
     pub fn bytes_from_str(secret: &str) -> Self {
@@ -473,9 +472,7 @@ impl Secret {
     /// Convenience function to get the RSA Keypair from a DER encoded RSA private key.
     /// See example in the [`Secret::RsaKeyPair`] variant documentation for usage.
     pub fn rsa_keypair_from_file(path: &str) -> Result<Self, Error> {
-        let der = Self::read_bytes(path)?;
-        let key_pair = signature::RsaKeyPair::from_der(der.as_slice())?;
-        Ok(Secret::RsaKeyPair(Arc::new(key_pair)))
+        crate::crypto_impl::rsa_keypair_from_file(path)
     }
 
     /// Convenience function to get the ECDSA Keypair from a PKCS8-DER encoded EC private key.
@@ -483,20 +480,13 @@ impl Secret {
         algorithm: SignatureAlgorithm,
         path: &str,
     ) -> Result<Self, Error> {
-        let der = Self::read_bytes(path)?;
-        let ring_algorithm = match algorithm {
-            SignatureAlgorithm::ES256 => &signature::ECDSA_P256_SHA256_FIXED_SIGNING,
-            SignatureAlgorithm::ES384 => &signature::ECDSA_P384_SHA384_FIXED_SIGNING,
-            _ => return Err(Error::UnsupportedOperation),
-        };
-        let key_pair = signature::EcdsaKeyPair::from_pkcs8(ring_algorithm, der.as_slice())?;
-        Ok(Secret::EcdsaKeyPair(Arc::new(key_pair)))
+        crate::crypto_impl::ecdsa_keypair_from_file(algorithm, path)
     }
 
     /// Convenience function to create a Public key from a DER encoded RSA or ECDSA public key
     /// See examples in the [`Secret::PublicKey`] variant documentation for usage.
     pub fn public_key_from_file(path: &str) -> Result<Self, Error> {
-        let der = Self::read_bytes(path)?;
+        let der = read_bytes(path)?;
         Ok(Secret::PublicKey(der.to_vec()))
     }
 }

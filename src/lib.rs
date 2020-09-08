@@ -132,6 +132,12 @@ pub mod jws;
 
 pub mod digest;
 
+pub mod crypto;
+#[cfg(feature = "ring_impl")]
+use crypto::ring as crypto_impl;
+#[cfg(feature = "rust_crypto_impl")]
+use crypto::rust as crypto_impl;
+
 use crate::errors::{Error, ValidationError};
 
 /// A convenience type alias of the common "JWT" which is a secured/unsecured compact JWS.
