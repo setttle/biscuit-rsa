@@ -88,7 +88,6 @@ pub enum SignatureAlgorithm {
     /// ECDSA using P-384 and SHA-384
     ES384,
     /// ECDSA using P-521 and SHA-512 --
-    /// This variant is [unsupported](https://github.com/briansmith/ring/issues/268) and will probably never be.
     ES512,
     /// RSASSA-PSS using SHA-256 and MGF1 with SHA-256.
     /// The size of the salt value is the same size as the hash function output.
@@ -381,8 +380,8 @@ impl KeyManagementAlgorithm {
         content_alg: ContentEncryptionAlgorithm,
         key: &jwk::JWK<T>,
     ) -> Result<jwk::JWK<Empty>, Error>
-        where
-            T: Serialize + DeserializeOwned,
+    where
+        T: Serialize + DeserializeOwned,
     {
         use self::KeyManagementAlgorithm::*;
 
@@ -394,8 +393,8 @@ impl KeyManagementAlgorithm {
     }
 
     fn cek_direct<T>(self, key: &jwk::JWK<T>) -> Result<jwk::JWK<Empty>, Error>
-        where
-            T: Serialize + DeserializeOwned,
+    where
+        T: Serialize + DeserializeOwned,
     {
         match key.key_type() {
             jwk::KeyType::Octet => Ok(key.clone_without_additional()),
@@ -620,9 +619,9 @@ impl ContentEncryptionAlgorithm {
 mod tests {
     //use ring::constant_time::verify_slices_are_equal;
     use super::*;
+    use crate::crypto_impl;
     use crate::jwa;
     use crate::CompactPart;
-    use crate::crypto_impl;
 
     #[test]
     fn sign_and_verify_none() {
@@ -709,7 +708,7 @@ mod tests {
                                       319FF5E4258D06C578B9527B",
                 16,
             )
-                .unwrap(),
+            .unwrap(),
             e: BigUint::from(65537u32),
         };
         let payload = "payload".to_string();
@@ -800,7 +799,7 @@ mod tests {
             SignatureAlgorithm::ES256,
             "test/fixtures/ecdsa_private_key.p8",
         )
-            .unwrap();
+        .unwrap();
         let payload = "payload".to_string();
         let payload_bytes = payload.as_bytes();
 
@@ -823,7 +822,7 @@ mod tests {
             SignatureAlgorithm::ES256,
             "test/fixtures/ecdsa_private_key.p8",
         )
-            .unwrap();
+        .unwrap();
         let payload = "payload".to_string();
         let payload_bytes = payload.as_bytes();
 
@@ -987,7 +986,11 @@ mod tests {
             &[],
             &key,
         ));
-        let decrypted = not_err!(crypto_impl::aes_gcm_decrypt(&AesGcmAlgorithm::A128GCM, &encrypted, &key));
+        let decrypted = not_err!(crypto_impl::aes_gcm_decrypt(
+            &AesGcmAlgorithm::A128GCM,
+            &encrypted,
+            &key
+        ));
 
         let payload = not_err!(String::from_utf8(decrypted));
         assert_eq!(payload, PAYLOAD);
@@ -1015,7 +1018,11 @@ mod tests {
             &[],
             &key,
         ));
-        let decrypted = not_err!(crypto_impl::aes_gcm_decrypt(&AesGcmAlgorithm::A128GCM, &encrypted, &key));
+        let decrypted = not_err!(crypto_impl::aes_gcm_decrypt(
+            &AesGcmAlgorithm::A128GCM,
+            &encrypted,
+            &key
+        ));
 
         let payload = not_err!(String::from_utf8(decrypted));
         assert_eq!(payload, PAYLOAD);
@@ -1043,7 +1050,11 @@ mod tests {
             &[],
             &key,
         ));
-        let decrypted = not_err!(crypto_impl::aes_gcm_decrypt(&AesGcmAlgorithm::A256GCM, &encrypted, &key));
+        let decrypted = not_err!(crypto_impl::aes_gcm_decrypt(
+            &AesGcmAlgorithm::A256GCM,
+            &encrypted,
+            &key
+        ));
 
         let payload = not_err!(String::from_utf8(decrypted));
         assert_eq!(payload, PAYLOAD);
@@ -1070,7 +1081,11 @@ mod tests {
             &[],
             &key,
         ));
-        let decrypted = not_err!(crypto_impl::aes_gcm_decrypt(&AesGcmAlgorithm::A256GCM, &encrypted, &key));
+        let decrypted = not_err!(crypto_impl::aes_gcm_decrypt(
+            &AesGcmAlgorithm::A256GCM,
+            &encrypted,
+            &key
+        ));
 
         let payload = not_err!(String::from_utf8(decrypted));
         assert_eq!(payload, PAYLOAD);
@@ -1094,9 +1109,11 @@ mod tests {
         let cek_alg = KeyManagementAlgorithm::DirectSymmetricKey;
         let cek = not_err!(cek_alg.cek(jwa::ContentEncryptionAlgorithm::A256GCM, &key));
 
-        assert!(
-            crypto_impl::verify_slices_are_equal(cek.octet_key().unwrap(), key.octet_key().unwrap()).is_ok()
-        );
+        assert!(crypto_impl::verify_slices_are_equal(
+            cek.octet_key().unwrap(),
+            key.octet_key().unwrap()
+        )
+        .is_ok());
     }
 
     /// `KeyManagementAlgorithm::A128GCMKW` returns a random key with the right length when CEK is requested
@@ -1117,15 +1134,19 @@ mod tests {
         let cek_alg = KeyManagementAlgorithm::A128GCMKW;
         let cek = not_err!(cek_alg.cek(jwa::ContentEncryptionAlgorithm::A128GCM, &key));
         assert_eq!(cek.octet_key().unwrap().len(), 128 / 8);
-        assert!(
-            crypto_impl::verify_slices_are_equal(cek.octet_key().unwrap(), key.octet_key().unwrap()).is_err()
-        );
+        assert!(crypto_impl::verify_slices_are_equal(
+            cek.octet_key().unwrap(),
+            key.octet_key().unwrap()
+        )
+        .is_err());
 
         let cek = not_err!(cek_alg.cek(jwa::ContentEncryptionAlgorithm::A256GCM, &key));
         assert_eq!(cek.octet_key().unwrap().len(), 256 / 8);
-        assert!(
-            crypto_impl::verify_slices_are_equal(cek.octet_key().unwrap(), key.octet_key().unwrap()).is_err()
-        );
+        assert!(crypto_impl::verify_slices_are_equal(
+            cek.octet_key().unwrap(),
+            key.octet_key().unwrap()
+        )
+        .is_err());
     }
 
     /// `KeyManagementAlgorithm::A256GCMKW` returns a random key with the right length when CEK is requested
@@ -1146,15 +1167,19 @@ mod tests {
         let cek_alg = KeyManagementAlgorithm::A256GCMKW;
         let cek = not_err!(cek_alg.cek(jwa::ContentEncryptionAlgorithm::A128GCM, &key));
         assert_eq!(cek.octet_key().unwrap().len(), 128 / 8);
-        assert!(
-            crypto_impl::verify_slices_are_equal(cek.octet_key().unwrap(), key.octet_key().unwrap()).is_err()
-        );
+        assert!(crypto_impl::verify_slices_are_equal(
+            cek.octet_key().unwrap(),
+            key.octet_key().unwrap()
+        )
+        .is_err());
 
         let cek = not_err!(cek_alg.cek(jwa::ContentEncryptionAlgorithm::A256GCM, &key));
         assert_eq!(cek.octet_key().unwrap().len(), 256 / 8);
-        assert!(
-            crypto_impl::verify_slices_are_equal(cek.octet_key().unwrap(), key.octet_key().unwrap()).is_err()
-        );
+        assert!(crypto_impl::verify_slices_are_equal(
+            cek.octet_key().unwrap(),
+            key.octet_key().unwrap()
+        )
+        .is_err());
     }
 
     #[test]
@@ -1186,7 +1211,7 @@ mod tests {
             cek.octet_key().unwrap(),
             decrypted_cek.octet_key().unwrap(),
         )
-            .is_ok());
+        .is_ok());
     }
 
     #[test]
@@ -1218,7 +1243,7 @@ mod tests {
             cek.octet_key().unwrap(),
             decrypted_cek.octet_key().unwrap(),
         )
-            .is_ok());
+        .is_ok());
     }
 
     /// `ContentEncryptionAlgorithm::A128GCM` generates CEK of the right length
@@ -1262,7 +1287,9 @@ mod tests {
             not_err!(enc_alg.encrypt(payload.as_bytes(), aad.as_bytes(), &key, &options,));
 
         let decrypted_payload = not_err!(enc_alg.decrypt(&encrypted_payload, &key));
-        assert!(crypto_impl::verify_slices_are_equal(payload.as_bytes(), &decrypted_payload).is_ok());
+        assert!(
+            crypto_impl::verify_slices_are_equal(payload.as_bytes(), &decrypted_payload).is_ok()
+        );
     }
 
     #[test]
@@ -1290,6 +1317,8 @@ mod tests {
             not_err!(enc_alg.encrypt(payload.as_bytes(), aad.as_bytes(), &key, &options,));
 
         let decrypted_payload = not_err!(enc_alg.decrypt(&encrypted_payload, &key));
-        assert!(crypto_impl::verify_slices_are_equal(payload.as_bytes(), &decrypted_payload).is_ok());
+        assert!(
+            crypto_impl::verify_slices_are_equal(payload.as_bytes(), &decrypted_payload).is_ok()
+        );
     }
 }

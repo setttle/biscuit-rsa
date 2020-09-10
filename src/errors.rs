@@ -24,8 +24,12 @@ pub enum Error {
     IOError(io::Error),
 
     /// Key was rejected by Ring
-    #[cfg(feature = "ring")]
+    #[cfg(feature = "ring_impl")]
     KeyRejected(ring::error::KeyRejected),
+
+    /// RSA lib error
+    #[cfg(feature = "rust_crypto_impl")]
+    RsaError(rsa::errors::Error),
 
     /// Wrong key type was provided for the cryptographic operation
     WrongKeyType {
@@ -116,12 +120,21 @@ impl_from_error!(str::Utf8Error, Error::Utf8);
 impl_from_error!(ValidationError, Error::ValidationError);
 impl_from_error!(DecodeError, Error::DecodeError);
 impl_from_error!(io::Error, Error::IOError);
-#[cfg(feature = "ring")]
+#[cfg(feature = "ring_impl")]
 impl_from_error!(ring::error::KeyRejected, Error::KeyRejected);
+#[cfg(feature = "rust_crypto_impl")]
+impl_from_error!(rsa::errors::Error, Error::RsaError);
 
-#[cfg(feature = "ring")]
+#[cfg(feature = "ring_impl")]
 impl From<ring::error::Unspecified> for Error {
     fn from(_: ring::error::Unspecified) -> Self {
+        Error::UnspecifiedCryptographicError
+    }
+}
+
+#[cfg(feature = "rust_crypto_impl")]
+impl From<crate::crypto::rust::Unspecified> for Error {
+    fn from(_: crate::crypto::rust::Unspecified) -> Self {
         Error::UnspecifiedCryptographicError
     }
 }
@@ -144,8 +157,11 @@ impl fmt::Display for Error {
             DecodeError(ref err) => fmt::Display::fmt(err, f),
             ValidationError(ref err) => fmt::Display::fmt(err, f),
             IOError(ref err) => fmt::Display::fmt(err, f),
-            #[cfg(feature = "ring")]
+            #[cfg(feature = "ring_impl")]
             KeyRejected(ref err) => fmt::Display::fmt(err, f),
+            #[cfg(feature = "rust_crypto_impl")]
+            RsaError(ref err) => fmt::Display::fmt(err, f),
+
             WrongKeyType {
                 ref actual,
                 ref expected,
