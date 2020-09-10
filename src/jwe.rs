@@ -621,11 +621,11 @@ mod tests {
     use serde_test::{assert_tokens, Token};
 
     use super::*;
+    use crate::crypto_impl;
     use crate::jwa::{self};
     use crate::jws;
     use crate::test::assert_serde_json;
     use crate::JWE;
-    use crate::crypto_impl;
 
     fn cek_oct_key(len: usize) -> jwk::JWK<Empty> {
         // Construct the encryption key

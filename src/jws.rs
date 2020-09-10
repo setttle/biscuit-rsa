@@ -451,7 +451,7 @@ pub enum Secret {
     },
 }
 
-pub (crate) fn read_bytes(path: &str) -> Result<Vec<u8>, Error> {
+pub(crate) fn read_bytes(path: &str) -> Result<Vec<u8>, Error> {
     use std::fs::File;
     use std::io::prelude::*;
 

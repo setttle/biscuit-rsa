@@ -7,17 +7,19 @@ use once_cell::sync::Lazy;
 use ring::rand::SystemRandom;
 use ring::signature::KeyPair;
 use ring::{aead, hmac, rand, signature};
-use serde::Serialize;
 use serde::de::DeserializeOwned;
+use serde::Serialize;
 
 pub use ring::rand::SecureRandom;
 
-use crate::jws::{Secret, read_bytes};
-use crate::jwa::{SignatureAlgorithm, EncryptionResult, AES_GCM_TAG_SIZE, AES_GCM_NONCE_LENGTH, AesGcmAlgorithm};
-use crate::errors::Error;
-use crate::jwk;
-use ring::error::Unspecified;
 use crate::digest::DigestAlgorithm;
+use crate::errors::Error;
+use crate::jwa::{
+    AesGcmAlgorithm, EncryptionResult, SignatureAlgorithm, AES_GCM_NONCE_LENGTH, AES_GCM_TAG_SIZE,
+};
+use crate::jwk;
+use crate::jws::{read_bytes, Secret};
+use ring::error::Unspecified;
 use std::sync::Arc;
 
 ///!
@@ -26,13 +28,13 @@ pub type RsaKeyPair = ring::signature::RsaKeyPair;
 ///!
 pub type EcdsaKeyPair = ring::signature::EcdsaKeyPair;
 
-pub (crate) fn rsa_keypair_from_file(path: &str) -> Result<Secret, Error> {
+pub(crate) fn rsa_keypair_from_file(path: &str) -> Result<Secret, Error> {
     let der = read_bytes(path)?;
     let key_pair = RsaKeyPair::from_der(der.as_slice())?;
     Ok(Secret::RsaKeyPair(Arc::new(key_pair)))
 }
 
-pub (crate) fn ecdsa_keypair_from_file(
+pub(crate) fn ecdsa_keypair_from_file(
     algorithm: SignatureAlgorithm,
     path: &str,
 ) -> Result<Secret, Error> {
@@ -46,7 +48,7 @@ pub (crate) fn ecdsa_keypair_from_file(
     Ok(Secret::EcdsaKeyPair(Arc::new(key_pair)))
 }
 
-pub (crate) fn sign_hmac(
+pub(crate) fn sign_hmac(
     data: &[u8],
     secret: &Secret,
     algorithm: SignatureAlgorithm,
@@ -66,7 +68,7 @@ pub (crate) fn sign_hmac(
     Ok(hmac::sign(&key, data).as_ref().to_vec())
 }
 
-pub (crate) fn sign_rsa(
+pub(crate) fn sign_rsa(
     data: &[u8],
     secret: &Secret,
     algorithm: SignatureAlgorithm,
@@ -92,7 +94,7 @@ pub (crate) fn sign_rsa(
     Ok(signature)
 }
 
-pub (crate) fn sign_ecdsa(
+pub(crate) fn sign_ecdsa(
     data: &[u8],
     secret: &Secret,
     algorithm: SignatureAlgorithm,
@@ -111,7 +113,7 @@ pub (crate) fn sign_ecdsa(
     }
 }
 
-pub (crate) fn verify_hmac(
+pub(crate) fn verify_hmac(
     expected_signature: &[u8],
     data: &[u8],
     secret: &Secret,
@@ -122,7 +124,7 @@ pub (crate) fn verify_hmac(
     Ok(())
 }
 
-pub (crate) fn verify_public_key(
+pub(crate) fn verify_public_key(
     expected_signature: &[u8],
     data: &[u8],
     secret: &Secret,
@@ -130,8 +132,7 @@ pub (crate) fn verify_public_key(
 ) -> Result<(), Error> {
     match *secret {
         Secret::PublicKey(ref public_key) => {
-            let verification_algorithm: &dyn signature::VerificationAlgorithm = match algorithm
-            {
+            let verification_algorithm: &dyn signature::VerificationAlgorithm = match algorithm {
                 SignatureAlgorithm::RS256 => &signature::RSA_PKCS1_2048_8192_SHA256,
                 SignatureAlgorithm::RS384 => &signature::RSA_PKCS1_2048_8192_SHA384,
                 SignatureAlgorithm::RS512 => &signature::RSA_PKCS1_2048_8192_SHA512,
@@ -144,16 +145,13 @@ pub (crate) fn verify_public_key(
                 _ => unreachable!("Should not happen"),
             };
 
-            let public_key = signature::UnparsedPublicKey::new(
-                verification_algorithm,
-                public_key.as_slice(),
-            );
+            let public_key =
+                signature::UnparsedPublicKey::new(verification_algorithm, public_key.as_slice());
             public_key.verify(&data, &expected_signature)?;
             Ok(())
         }
         Secret::RsaKeyPair(ref keypair) => {
-            let verification_algorithm: &dyn signature::VerificationAlgorithm = match algorithm
-            {
+            let verification_algorithm: &dyn signature::VerificationAlgorithm = match algorithm {
                 SignatureAlgorithm::RS256 => &signature::RSA_PKCS1_2048_8192_SHA256,
                 SignatureAlgorithm::RS384 => &signature::RSA_PKCS1_2048_8192_SHA384,
                 SignatureAlgorithm::RS512 => &signature::RSA_PKCS1_2048_8192_SHA512,
@@ -189,8 +187,7 @@ pub (crate) fn verify_public_key(
             Ok(())
         }
         Secret::EcdsaKeyPair(ref keypair) => {
-            let verification_algorithm: &dyn signature::VerificationAlgorithm = match algorithm
-            {
+            let verification_algorithm: &dyn signature::VerificationAlgorithm = match algorithm {
                 SignatureAlgorithm::ES256 => &signature::ECDSA_P256_SHA256_FIXED,
                 SignatureAlgorithm::ES384 => &signature::ECDSA_P384_SHA384_FIXED,
                 SignatureAlgorithm::ES512 => Err(Error::UnsupportedOperation)?,
@@ -207,7 +204,7 @@ pub (crate) fn verify_public_key(
 }
 
 /// Encrypt a payload with AES GCM
-pub (crate) fn aes_gcm_encrypt<T: Serialize + DeserializeOwned>(
+pub(crate) fn aes_gcm_encrypt<T: Serialize + DeserializeOwned>(
     algorithm: &AesGcmAlgorithm,
     payload: &[u8],
     nonce: &[u8],
@@ -245,12 +242,11 @@ pub (crate) fn aes_gcm_encrypt<T: Serialize + DeserializeOwned>(
 }
 
 /// Decrypts a payload with AES GCM
-pub (crate) fn aes_gcm_decrypt<T: Serialize + DeserializeOwned>(
+pub(crate) fn aes_gcm_decrypt<T: Serialize + DeserializeOwned>(
     algorithm: &AesGcmAlgorithm,
     encrypted: &EncryptionResult,
     key: &jwk::JWK<T>,
 ) -> Result<Vec<u8>, Error> {
-
     let ring_algo = match algorithm {
         AesGcmAlgorithm::A128GCM => &aead::AES_128_GCM,
         AesGcmAlgorithm::A256GCM => &aead::AES_256_GCM,
@@ -310,5 +306,8 @@ pub(crate) fn digest(algorithm: &DigestAlgorithm, data: &[u8]) -> Vec<u8> {
         DigestAlgorithm::SHA512 => &ring::digest::SHA512,
         DigestAlgorithm::SHA512_256 => &ring::digest::SHA512_256,
     };
-    ring::digest::digest(ring_algo, data).as_ref().to_vec().clone()
+    ring::digest::digest(ring_algo, data)
+        .as_ref()
+        .to_vec()
+        .clone()
 }

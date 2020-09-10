@@ -1404,7 +1404,9 @@ mod tests {
         )
         .unwrap();
         assert_eq!(
-            jwk.algorithm.thumbprint(&crate::digest::DigestAlgorithm::SHA256).unwrap(),
+            jwk.algorithm
+                .thumbprint(&crate::digest::DigestAlgorithm::SHA256)
+                .unwrap(),
             "5RQpPyszBq9VihghaQY1Ptj4OdOpQH7AIOOnngMEKrA"
         );
     }
@@ -1423,7 +1425,9 @@ mod tests {
         )
         .unwrap();
         assert_eq!(
-            jwk.algorithm.thumbprint(&crate::digest::DigestAlgorithm::SHA256).unwrap(),
+            jwk.algorithm
+                .thumbprint(&crate::digest::DigestAlgorithm::SHA256)
+                .unwrap(),
             "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs"
         );
     }
@@ -1443,7 +1447,9 @@ mod tests {
         )
         .unwrap();
         assert_eq!(
-            jwk.algorithm.thumbprint(&crate::digest::DigestAlgorithm::SHA256).unwrap(),
+            jwk.algorithm
+                .thumbprint(&crate::digest::DigestAlgorithm::SHA256)
+                .unwrap(),
             "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs"
         );
     }
@@ -1461,7 +1467,9 @@ mod tests {
         )
         .unwrap();
         assert_eq!(
-            jwk.algorithm.thumbprint(&crate::digest::DigestAlgorithm::SHA256).unwrap(),
+            jwk.algorithm
+                .thumbprint(&crate::digest::DigestAlgorithm::SHA256)
+                .unwrap(),
             "svOLuZiKpi3RFmSHAcCJqsQqjBmWR4egaIsgk-2uBak"
         );
     }
@@ -1477,7 +1485,9 @@ mod tests {
         )
         .unwrap();
         assert_eq!(
-            jwk.algorithm.thumbprint(&crate::digest::DigestAlgorithm::SHA256).unwrap(),
+            jwk.algorithm
+                .thumbprint(&crate::digest::DigestAlgorithm::SHA256)
+                .unwrap(),
             "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k"
         );
     }
